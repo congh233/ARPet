@@ -1,3 +1,6 @@
+# 注意：本工作流依赖 Unity 许可证。
+# Unity Personal 无法在 GitHub 托管 runner 上激活，需要 Unity Pro（UNITY_SERIAL）
+# 或一台已登录 Unity Hub、激活过 Personal 的自建 macOS runner 才能使用。
 name: 2. 构建 iOS 未签名 IPA
 
 on:

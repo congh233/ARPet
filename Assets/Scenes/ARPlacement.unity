@@ -506,6 +506,7 @@ GameObject:
   - component: {fileID: 1788412664}
   - component: {fileID: 1788412663}
   - component: {fileID: 1788412662}
+  - component: {fileID: 1788412667}
   m_Layer: 0
   m_Name: XR Origin
   m_TagString: Untagged
@@ -520,7 +521,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1788412661}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 49ce8e9278449ca4e841b89f2e3fcf82, type: 3}
   m_Name: 
@@ -598,6 +599,22 @@ Transform:
   - {fileID: 1259422098}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1788412667
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1788412661}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f15baf12fa56dd640ae9d091c02ca935, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  petPrefab: {fileID: 3443460323595220036, guid: 424750f63fe4bd547bf011c82a714818, type: 3}
+  raycastManager: {fileID: 1788412663}
+  minSurfaceNormalY: 0.5
+  markerDuration: 0.5
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
