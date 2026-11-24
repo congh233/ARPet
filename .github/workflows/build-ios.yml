@@ -1,0 +1,90 @@
+name: 2. 构建 iOS 未签名 IPA
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ios-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Unity iOS -> 未签名 IPA
+    runs-on: macos-15
+    timeout-minutes: 150
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 打印环境版本
+        run: |
+          sw_vers
+          xcodebuild -version
+          echo "Workspace: $GITHUB_WORKSPACE"
+
+      - name: 缓存 Unity Library
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-iOS-${{ hashFiles('Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}
+          restore-keys: |
+            Library-iOS-
+
+      - name: Unity 构建 Xcode 工程
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          targetPlatform: iOS
+          cacheUnityInstallationOnMac: true
+
+      - name: Xcode 编译未签名 IPA
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          XCODEPROJ=$(find build -maxdepth 5 -name "Unity-iPhone.xcodeproj" -type d | head -n 1)
+          if [ -z "$XCODEPROJ" ]; then
+            echo "::error::找不到 Unity-iPhone.xcodeproj，下面是 build 目录结构："
+            find build -maxdepth 4 -type d | head -80
+            exit 1
+          fi
+
+          XCODE_DIR=$(dirname "$XCODEPROJ")
+          echo "Xcode 工程：$XCODEPROJ"
+
+          cd "$XCODE_DIR"
+          xcodebuild \
+            -project Unity-iPhone.xcodeproj \
+            -scheme Unity-iPhone \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build
+
+          APP_PATH=$(find "$RUNNER_TEMP/DerivedData/Build/Products" -maxdepth 3 -name "*.app" -type d | head -n 1)
+          if [ -z "$APP_PATH" ]; then
+            echo "::error::找不到编译出来的 .app"
+            find "$RUNNER_TEMP/DerivedData" -maxdepth 5 -type d | head -80
+            exit 1
+          fi
+
+          echo "App：$APP_PATH"
+          mkdir -p "$RUNNER_TEMP/Payload"
+          cp -R "$APP_PATH" "$RUNNER_TEMP/Payload/"
+          cd "$RUNNER_TEMP"
+          zip -r -q ARPet-unsigned.ipa Payload
+          ls -lh ARPet-unsigned.ipa
+          echo "IPA_PATH=$RUNNER_TEMP/ARPet-unsigned.ipa" >> "$GITHUB_ENV"
+
+      - name: 上传 IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: ARPet-unsigned-ipa
+          path: ${{ env.IPA_PATH }}
+          if-no-files-found: error
